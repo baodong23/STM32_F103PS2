@@ -1,0 +1,8 @@
+../Core/Src/ps2.c:15:26:PS2_SendDataIRQHandler	6
+../Core/Src/ps2.c:66:26:PS2_ReceiveDataIRQHandler	8
+../Core/Src/ps2.c:127:6:PS2_DataIRQHandler	6
+../Core/Src/ps2.c:150:6:PS2_CheckRequestToReceive	5
+../Core/Src/ps2.c:167:6:PS2_CheckRequestToSend	3
+../Core/Src/ps2.c:175:6:PS2_ClearFinishedSend	3
+../Core/Src/ps2.c:183:6:PS2_ClearFinishedReceive	3
+../Core/Src/ps2.c:190:6:PS2_ClockIRQHandler	6

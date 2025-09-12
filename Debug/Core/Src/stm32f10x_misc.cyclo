@@ -1,0 +1,3 @@
+../Core/Src/stm32f10x_misc.c:7:6:Delay	2
+../Core/Src/stm32f10x_misc.c:14:6:TimingDelay_Decrement	2
+../Core/Src/stm32f10x_misc.c:23:15:TIM_ReadDirection	1
