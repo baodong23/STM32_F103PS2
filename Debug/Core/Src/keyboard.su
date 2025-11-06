@@ -1,0 +1,4 @@
+../Core/Src/keyboard.c:33:6:Keyboard_Init	24	static
+../Core/Src/keyboard.c:40:6:Send_Code	24	static
+../Core/Src/keyboard.c:73:6:Follow_Command	24	static
+../Core/Src/keyboard.c:170:6:Key_Check	112	dynamic

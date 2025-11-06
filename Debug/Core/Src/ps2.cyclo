@@ -1,0 +1,3 @@
+../Core/Src/ps2.c:10:6:PS2_Init	1
+../Core/Src/ps2.c:16:6:PS2_Transmit	3
+../Core/Src/ps2.c:37:6:PS2_Receive	6
