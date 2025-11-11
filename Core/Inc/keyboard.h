@@ -12,6 +12,12 @@
 #include "ps2.h"
 
 extern void delay_us(uint16_t time);
+extern const uint32_t KEY_SCAN_CODES[14][6];
+extern unsigned int  LAST_BYTE;
+extern unsigned char EN;
+extern unsigned char REPEAT_RATE;
+extern unsigned char REPEAT_DELAY;
+extern unsigned char ELAPSED_TIME;
 
 #define CLOCK 24    // the clock speed in MHz driving XTAL1 & XTAL2
 #define BREAK 336   // the period between keycode/byte transmissions (in particular for extended/release codes, or multiple argument byte transmissions in a row)

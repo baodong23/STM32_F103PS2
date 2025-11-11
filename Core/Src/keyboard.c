@@ -7,29 +7,6 @@
 
 #include "keyboard.h"
 
-// 2D array to house key scan codes of key matrix (as well as each code's parity and stop bit in the 2nd-byte)
-const uint32_t KEY_SCAN_CODES[14][6] = {
-    { 0x0314, 0x0312, 0x0258, 0x020d, 0x020e, 0x0276 },         // { L_CTRL, L_SHFT, CAPS, TAB, B_T, ESC },
-    { 0xe0021f, 0x021a, 0x021c, 0x0215, 0x0216, 0x00 },         // { WIN, Z, A, Q, R_1, 0 },
-    { 0x0311, 0x0322, 0x031b, 0x031d, 0x031e, 0x0305 },         // { L_ALT, X, S, W, R_2, F_1 },
-    { 0x00, 0x0321, 0x0223, 0x0324, 0x0226, 0x0306 },           // { 0, C, D, E, R_3, F_2 },
-    { 0x00, 0x022a, 0x032b, 0x032d, 0x0225, 0x0204 },           // { 0, V, F, R, R_4, F_3 },
-    { 0x00, 0x0232, 0x0234, 0x022c, 0x032e, 0x030c },           // { 0, BB, G, T, R_5, F_4 },
-    { 0x0229, 0x0231, 0x0333, 0x0335, 0x0336, 0x00 },           // { SPACE, N, H, Y, R_6, 0 },
-    { 0x00, 0x033a, 0x023b, 0x033c, 0x023d, 0x0303 },           // { 0, M, J, U, R_7, F_5 },
-    { 0x00, 0x0341, 0x0342, 0x0243, 0x023e, 0x020b },           // { 0, COMMA, K, I, R_8, F_6 },
-    { 0xe00311, 0x0249, 0x034b, 0x0344, 0x0246, 0x0283 },       // { R_ALT, PER, L, O, R_9, F_7 },
-    { 0xe00327, 0x024a, 0x024c, 0x034d, 0x0245, 0x030a },       // { WIFN, B_SLA, S_COL, PP, R_0, F_8 },
-    { 0xe0022f, 0x00, 0x0252, 0x0254, 0x034e, 0x0201 },         // { MENUS, 0,  F_T, L_BRAK, SUB, F_9 },
-    { 0x00, 0x00, 0x0378, 0x025b, 0x0355, 0x0309 },             // { 0, 0, F_11, R_BRAK, EQU, F_10 },
-    { 0xe00314, 0x0359, 0x035a, 0x025d, 0x0366, 0x0207 }        // { R_CTRL, R_SHFT, ENTER, F_SLA, BCKSP, F_12 }
-};
-static unsigned int  LAST_BYTE = 0x00;   // for keeping track of last byte sent to host (for retransmission request)
-static unsigned char EN = 1;         // for enabling/disabling keyscanning
-static unsigned char REPEAT_RATE = 50;   // for the rate at which a keycode is repeated (1000 / REPEAT_RATE * 10 hertz or cps)
-static unsigned char REPEAT_DELAY = 100; // for delay before a pressed key starts repeating (REPEAT_DELAY * 10 milliseconds)
-static unsigned char ELAPSED_TIME = 0;   // for counting intervals of 10ms created by Timer 2 to keep track of when to repeat keycodes
-
 void Keyboard_Init(Keyboard_HandleTypeDef *key, GPIO_TypeDef *column_port, GPIO_TypeDef *row_port, uint8_t column, uint8_t row) {
 	key->column_port = column_port;
 	key->row_port = row_port;
@@ -178,8 +155,10 @@ void Key_Check(PS2_HandleTypeDef *ps2, Keyboard_HandleTypeDef *key, uint16_t *co
 			delay_us(50);
 		// check if host is ready to transmit
 		}else if(PS2_Check_Clock(ps2) && !PS2_Read_Data(ps2)) {
+			TIM2->DIER &= ~TIM_DIER_UIE;
 			PS2_Receive(ps2, &buffer);
 			Follow_Command(ps2, buffer);
+			TIM2->DIER |= TIM_DIER_UIE;
 		// otherwise, if key-matrix scanning is enabled, proceed with scanning for keypresses
 		}else if( EN ){
 			//P2 |= 0x10; // DEBUGGING LED

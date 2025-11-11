@@ -39,10 +39,10 @@ void PS2_Receive(PS2_HandleTypeDef *ps2, uint32_t *rxdata) {
 
 	uint8_t index;
 	for(index = 0; index < 10; index++) {
-		while(!PS2_Check_Clock(ps2));
+		PS2_Reset_Clock();
 		delay_us(16);
-		while(PS2_Check_Clock(ps2));
-		*rxdata |= PS2_Read_Data(ps2) << index++;
+		PS2_Set_Clock();
+		*rxdata |= PS2_Read_Data(ps2) << index;
 		delay_us(16);
 	}
 
