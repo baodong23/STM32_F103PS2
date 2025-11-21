@@ -14,12 +14,13 @@ void PS2_Init(PS2_HandleTypeDef *ps2, GPIO_TypeDef *gpio_port, uint16_t pin_clk,
 }
 
 void PS2_Transmit(PS2_HandleTypeDef *ps2, uint32_t keycode) {
+	LAST_BYTE = keycode;
 	keycode <<= 1;
 
 	for (int i = 0; i < 11; i++) {
 		PS2_Set_Clock();
 
-		PS2_Write_Data(ps2, keycode);
+		PS2_Write_Data(ps2, (uint8_t)keycode);
 
 		PS2_Reset_Clock();
 
@@ -30,26 +31,31 @@ void PS2_Transmit(PS2_HandleTypeDef *ps2, uint32_t keycode) {
 		delay_us(14);
 	}
 
-	PS2_Set_Clock();
-	PS2_Write_Data(ps2, PS2_SET);
+	PS2_Set_Data_Clock();
 }
 
 void PS2_Receive(PS2_HandleTypeDef *ps2, uint32_t *rxdata) {
-	while(!(!PS2_Read_Data(ps2) && PS2_Check_Clock(ps2)));
+	while(!(PS2_Check_Clock(ps2) && !PS2_Read_Data(ps2)));
 
-	uint8_t index;
+	uint8_t index = 0;
+
 	for(index = 0; index < 10; index++) {
 		PS2_Reset_Clock();
+
 		delay_us(16);
+
 		PS2_Set_Clock();
-		*rxdata |= PS2_Read_Data(ps2) << index;
+
+		*rxdata |= (PS2_Read_Data(ps2) << index);
 		delay_us(16);
 	}
 
 	PS2_Write_Data(ps2, PS2_RESET);
+
 	PS2_Reset_Clock();
+
 	delay_us(16);
-	PS2_Set_Clock();
-	PS2_Write_Data(ps2, PS2_SET);
+
+	PS2_Set_Data_Clock();
 }
 

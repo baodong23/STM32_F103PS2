@@ -15,6 +15,8 @@ void Keyboard_Init(Keyboard_HandleTypeDef *key, GPIO_TypeDef *column_port, GPIO_
 }
 
 void Send_Code(PS2_HandleTypeDef *ps2, uint32_t keycode, uint8_t keyState) {
+	HAL_TIM_Base_Stop_IT(&htim2);
+
 	if( keyState ){
 		// check if extended code
 		if( (keycode & 0xff0000) == 0xe00000 ){
@@ -45,6 +47,8 @@ void Send_Code(PS2_HandleTypeDef *ps2, uint32_t keycode, uint8_t keyState) {
 			delay_us(BREAK);
 		}
 	}
+
+	HAL_TIM_Base_Start_IT(&htim2);
 }
 
 void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
@@ -85,13 +89,13 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
             PS2_Receive(ps2, &arg);    // read the argument from host
             PS2_Transmit(ps2, ACK);      // acknowledge
             // set requested repeat rate (bits 0-4 of arg, 000X-XXXX) // (1000 / REPEAT_RATE * 10) cps
-            if( (arg & 0x1f) >= 0x18 && (arg & 0x1f) <= 0x1f )
+            if( (arg & 0x1F) >= 0x18 && (arg & 0x1F) <= 0x1F )
                 REPEAT_RATE = 50; // 2 cps
-            else if( (arg & 0x1f) >= 0x10 && (arg & 0x1f) <= 0x17 )
+            else if( (arg & 0x1F) >= 0x10 && (arg & 0x1F) <= 0x17 )
                 REPEAT_RATE = 25; // 4 cps
-            else if( (arg & 0x1f) >= 0x08 && (arg & 0x1f) <= 0x0f )
+            else if( (arg & 0x1F) >= 0x08 && (arg & 0x1F) <= 0x0f )
                 REPEAT_RATE = 12; // 8.3 cps
-            else if( (arg & 0x1f) >= 0x04 && (arg & 0x1f) <= 0x07 )
+            else if( (arg & 0x1F) >= 0x04 && (arg & 0x1F) <= 0x07 )
                 REPEAT_RATE = 6; // 16.6 cps
             else
                 REPEAT_RATE = 3; // 33.3 cps
@@ -145,22 +149,20 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
 }
 
 void Key_Check(PS2_HandleTypeDef *ps2, Keyboard_HandleTypeDef *key, uint16_t *column_pin, uint16_t *row_pin) {
-	unsigned char keyStamps[key->column_size][key->row_size];
-	uint8_t i = 0, j = 0;
-	uint32_t buffer = 0;
 	start:
 		// check if host is attempting to communicate or inhibit communications
 		if(!PS2_Check_Clock(ps2)) {
 			//P2 |= 0x20; // DEBUGGING LED (one method I sometimes employ in debugging is to have certain LEDs light under certain conditions)
-			delay_us(50);
+			delay_us(100);
 		// check if host is ready to transmit
 		}else if(PS2_Check_Clock(ps2) && !PS2_Read_Data(ps2)) {
-			TIM2->DIER &= ~TIM_DIER_UIE;
+			HAL_TIM_Base_Stop_IT(&htim2);
 			PS2_Receive(ps2, &buffer);
 			Follow_Command(ps2, buffer);
-			TIM2->DIER |= TIM_DIER_UIE;
+			HAL_TIM_Base_Start_IT(&htim2);
 		// otherwise, if key-matrix scanning is enabled, proceed with scanning for keypresses
-		}else if( EN ){
+		}
+		else if( EN ){
 			//P2 |= 0x10; // DEBUGGING LED
 			// loops for checking key matrix for pressed keys, first checking Port 1 (bits 1 to 8) columns then Port 3 (bits 1 to 6) columns
 			//P3 = 0x00, P1 = 0x01;
@@ -197,9 +199,10 @@ void Key_Check(PS2_HandleTypeDef *ps2, Keyboard_HandleTypeDef *key, uint16_t *co
 						keyStamps[i][j] = 0; // clear key time-stamp
 					}
 				}//end_for_rows
+				HAL_GPIO_WritePin(key->column_port, column_pin[i], GPIO_PIN_RESET);
 				// NOTE: SFR requires a max of 700 nano-seconds to set the Port data for valid output, which without parasitic capacitance is negligable
-				delay_us(100); // fixes potential ghost bug! (ie, parasitic capacitance in circuit causing ghost key-presses in bottom row)
+				delay_us(500); // fixes potential ghost bug! (ie, parasitic capacitance in circuit causing ghost key-presses in bottom row)
 			}//end_for_columns
 		}//end_if_else
-		delay_us(50);
+		delay_us(200);
 }

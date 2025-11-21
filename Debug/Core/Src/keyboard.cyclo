@@ -1,4 +1,4 @@
 ../Core/Src/keyboard.c:10:6:Keyboard_Init	1
 ../Core/Src/keyboard.c:17:6:Send_Code	4
-../Core/Src/keyboard.c:50:6:Follow_Command	24
-../Core/Src/keyboard.c:147:6:Key_Check	17
+../Core/Src/keyboard.c:54:6:Follow_Command	24
+../Core/Src/keyboard.c:151:6:Key_Check	18

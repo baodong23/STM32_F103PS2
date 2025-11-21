@@ -10,7 +10,9 @@
 
 #include "stm32f1xx_hal.h"
 
-void delay_us(uint16_t time);
+extern void delay_us(uint16_t time);
+
+extern unsigned int  LAST_BYTE;
 
 typedef enum {
 	PS2_RESET,
@@ -24,15 +26,18 @@ typedef struct {
 	uint16_t ps2_data_pin;
 }PS2_HandleTypeDef;
 
-#define PS2_Reset_Clock()				ps2->ps2_port->BSRR = (uint32_t)ps2->ps2_clk_pin << 16	//HAL_GPIO_WritePin(ps2->ps2_port, ps2_clk_pin, PS2_RESET)
-#define PS2_Set_Clock()					ps2->ps2_port->BSRR = (uint32_t)ps2->ps2_clk_pin         //HAL_GPIO_WritePin(ps2->ps2_port, ps2_clk_pin, PS2_SET)
+#define PS2_Reset_Clock()				ps2->ps2_port->BSRR = (uint32_t)(ps2->ps2_clk_pin << 16)	//HAL_GPIO_WritePin(ps2->ps2_port, ps2_clk_pin, PS2_RESET)
+#define PS2_Set_Clock()					ps2->ps2_port->BSRR = (uint32_t)(ps2->ps2_clk_pin)         //HAL_GPIO_WritePin(ps2->ps2_port, ps2_clk_pin, PS2_SET)
 #define PS2_Check_Clock(__handle__) \
-		((__handle__->ps2_port->IDR) & (__handle__->ps2_clk_pin)) ? 1 : 0
+		(uint32_t)(((__handle__->ps2_port->IDR) & (__handle__->ps2_clk_pin)) ? 1 : 0)
+
+#define PS2_Set_Data_Clock()		    ps2->ps2_port->BSRR = (uint32_t)(ps2->ps2_clk_pin | ps2->ps2_data_pin)
+#define PS2_Reset_Data_Clock()			ps2->ps2_port->BSRR = (uint32_t)(ps2->ps2_clk_pin | ps2->ps2_data_pin) << 16
 
 #define PS2_Write_Data(__handle__, __state__) \
-		(__handle__->ps2_port->BSRR) = (__state__ & 0x01) ? (__handle__->ps2_data_pin) : (__handle__->ps2_data_pin << 16)
+		(__handle__->ps2_port->BSRR) = (uint32_t)((__state__ & 0x01) ? (__handle__->ps2_data_pin) : (__handle__->ps2_data_pin << 16))
 #define PS2_Read_Data(__handle__) \
-		((__handle__->ps2_port->IDR) & (__handle__->ps2_data_pin)) ? 1 : 0
+		(uint32_t)(((__handle__->ps2_port->IDR) & (__handle__->ps2_data_pin)) ? 1 : 0)
 
 void PS2_Init(PS2_HandleTypeDef *ps2, GPIO_TypeDef *gpio_port, uint16_t pin_clk, uint16_t pin_data);
 void PS2_Transmit(PS2_HandleTypeDef *ps2, uint32_t keycode);
