@@ -12,7 +12,7 @@
 
 extern void delay_us(uint16_t time);
 
-extern unsigned int  LAST_BYTE;
+extern unsigned int LAST_BYTE;
 
 typedef enum {
 	PS2_RESET,
@@ -39,7 +39,9 @@ typedef struct {
 #define PS2_Read_Data(__handle__) \
 		(uint32_t)(((__handle__->ps2_port->IDR) & (__handle__->ps2_data_pin)) ? 1 : 0)
 
+//#define PS2_Read_Data()					HAL_GPIO_ReadPin(ps2_port, ps2_data_pin)
+
 void PS2_Init(PS2_HandleTypeDef *ps2, GPIO_TypeDef *gpio_port, uint16_t pin_clk, uint16_t pin_data);
 void PS2_Transmit(PS2_HandleTypeDef *ps2, uint32_t keycode);
-void PS2_Receive(PS2_HandleTypeDef *ps2, uint32_t *rxdata);
+int PS2_Receive(PS2_HandleTypeDef *ps2);
 #endif /* INC_PS2_H_ */

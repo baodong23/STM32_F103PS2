@@ -10,6 +10,7 @@
 
 #include "stm32f1xx_hal.h"
 #include "ps2.h"
+#include "stdio.h"
 
 extern TIM_HandleTypeDef htim2;
 extern void delay_us(uint16_t time);

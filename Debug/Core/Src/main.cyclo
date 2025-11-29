@@ -4,5 +4,5 @@
 ../Core/Src/main.c:201:13:MX_TIM1_Init	4
 ../Core/Src/main.c:247:13:MX_TIM2_Init	4
 ../Core/Src/main.c:292:13:MX_GPIO_Init	1
-../Core/Src/main.c:368:6:delay_us	2
-../Core/Src/main.c:378:6:Error_Handler	1
+../Core/Src/main.c:366:6:delay_us	2
+../Core/Src/main.c:377:6:Error_Handler	1

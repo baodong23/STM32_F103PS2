@@ -57,7 +57,7 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
     switch( command ){
         case 0xed: // set LEDs
         	PS2_Transmit(ps2, ACK);      // acknowledge
-            PS2_Receive(ps2, &arg);    // read argument byte from host
+            arg = PS2_Receive(ps2);    // read argument byte from host
             PS2_Transmit(ps2, ACK);      // acknowledge
             // check state of CapsLock LED (bit 2), the only "lock-key" present on version 1.0 of this keyboard
             if( (arg & 0x04) ){
@@ -71,7 +71,7 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
             break;
         case 0xf0: // scan code set
         	PS2_Transmit(ps2, ACK);      // acknowledge
-            PS2_Receive(ps2, &arg);    // read argument byte from host
+            arg = PS2_Receive(ps2);    // read argument byte from host
             PS2_Transmit(ps2, ACK);      // acknowledge
             // if the argument received is 0, respond with current scan code set (which is 0x02)
             if( !(arg & 0xff) )
@@ -86,7 +86,7 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
             break;
         case 0xf3: // set typematic delay / auto-repeat rate of keycodes
         	PS2_Transmit(ps2, ACK);      // acknowledge
-            PS2_Receive(ps2, &arg);    // read the argument from host
+            arg = PS2_Receive(ps2);    // read the argument from host
             PS2_Transmit(ps2, ACK);      // acknowledge
             // set requested repeat rate (bits 0-4 of arg, 000X-XXXX) // (1000 / REPEAT_RATE * 10) cps
             if( (arg & 0x1F) >= 0x18 && (arg & 0x1F) <= 0x1F )
@@ -138,11 +138,11 @@ void Follow_Command(PS2_HandleTypeDef *ps2, uint32_t command) {
         case 0xfc: // set specific key to make/release
         case 0xfd: // set specific key to make only
         	PS2_Transmit(ps2, ACK);      // acknowledge
-            PS2_Receive(ps2, &arg);    // read argument byte from host
+            arg = PS2_Receive(ps2);    // read argument byte from host
             PS2_Transmit(ps2, ACK);      // acknowledge
             break;
         default: // command unknown or reception error
-        	PS2_Transmit(ps2, RE);   // resend
+        	PS2_Transmit(ps2, RE);   // re send
             //P2 |= 0x20;       // DEBUGGING LED
             break;
     }//end_switch
@@ -153,14 +153,14 @@ void Key_Check(PS2_HandleTypeDef *ps2, Keyboard_HandleTypeDef *key, uint16_t *co
 		// check if host is attempting to communicate or inhibit communications
 		if(!PS2_Check_Clock(ps2)) {
 			//P2 |= 0x20; // DEBUGGING LED (one method I sometimes employ in debugging is to have certain LEDs light under certain conditions)
-			delay_us(100);
+			delay_us(50);
 		// check if host is ready to transmit
 		}else if(PS2_Check_Clock(ps2) && !PS2_Read_Data(ps2)) {
 			HAL_TIM_Base_Stop_IT(&htim2);
-			PS2_Receive(ps2, &buffer);
+			buffer = PS2_Receive(ps2);
 			Follow_Command(ps2, buffer);
 			HAL_TIM_Base_Start_IT(&htim2);
-		// otherwise, if key-matrix scanning is enabled, proceed with scanning for keypresses
+		// otherwise, if key-matrix scanning is enabled, proceed with scanning for key presses
 		}
 		else if( EN ){
 			//P2 |= 0x10; // DEBUGGING LED
@@ -201,8 +201,8 @@ void Key_Check(PS2_HandleTypeDef *ps2, Keyboard_HandleTypeDef *key, uint16_t *co
 				}//end_for_rows
 				HAL_GPIO_WritePin(key->column_port, column_pin[i], GPIO_PIN_RESET);
 				// NOTE: SFR requires a max of 700 nano-seconds to set the Port data for valid output, which without parasitic capacitance is negligable
-				delay_us(500); // fixes potential ghost bug! (ie, parasitic capacitance in circuit causing ghost key-presses in bottom row)
+				delay_us(100); // fixes potential ghost bug! (ie, parasitic capacitance in circuit causing ghost key-presses in bottom row)
 			}//end_for_columns
 		}//end_if_else
-		delay_us(200);
+		delay_us(50);
 }
